@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<!-- Dependency libraries 
+1) Bootstrap angularJS integration - http://angular-ui.github.io/bootstrap/
+2) Dropdown angulrJS integration - https://github.com/jseppi/angular-dropdowns
+3) Slider (jQuery) - http://jqueryui.com/slider/
+4) Date range picker (jQuery) - http://www.dangrossman.info/2012/08/20/a-date-range-picker-for-twitter-bootstrap/
+5) Template rendering as raw html solved using ng-cloak - http://stackoverflow.com/questions/12866447/prevent-double-curly-brace-notation-from-displaying-momentarily-before-angular-j
+-->
+<html ng-app="dvdSearch" >
+  <head>
+    <title>DVD Search</title>
+    <link rel="icon" href="favicon.ico" type="image/x-icon"> 
+    <link rel="shortcut icon" href="favicon.ico" type="image/x-icon"> 
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+        <!-- project dependency libs - Bootstrap -->	
+	<link href="css/bootstrap.css" rel="stylesheet" media="screen"/>
+	<link href="css/bootstrap-theme.css" rel="stylesheet" media="screen"/>
+	<link rel="stylesheet" href="css/font-awesome.css" media="screen" >
+  	<link rel="stylesheet" href="css/font-awesome-ie7.css" media="screen" >
+  	<link href="css/select2.css" rel="stylesheet" media="screen"  />
+  	<link rel="stylesheet" href="css/daterangepicker-bs2.css" media="screen" >
+  	<link rel="stylesheet" href="css/prettyCheckable.css" media="screen" >
+	<link href="css/angularDropdown.css" rel="stylesheet" media="screen"/>
+	<link href="css/customizedStyle.css" rel="stylesheet" media="screen"/>
+	
+
+<!-- project dependency libs - Angular/ES -->
+        <script src="js/angular.min.js"></script>
+        <script src="js/angular-sanitize.min.js"></script>
+        <script src="js/ui-bootstrap-0.6.0.js"></script>
+        <script src="js/elastic.min.js"></script>
+        <script src="js/elastic-angular-client.js"></script>
+        <script src="js/ui-bootstrap-tpls-0.6.0.js"></script>
+        <script src="js/angularDropdown.js"></script>
+
+
+		<script src="js/jquery.js"></script>
+		<script src="js/daterangepicker.js"></script>
+		<script src="js/jquery-ui-1.10.3.custom.min.js"></script>
+		<script src="js/moment.min.js"></script>
+		<script src="js/elastic-angular-client.js"></script>
+</head>
+
+<!-- We define the global controller here as SearchCtle -->
+<body ng-controller="SearchCtrl">
+	<!-- Start of Navbar -->	
+	<!--Start innerContainer -->
+<div class = 'innerContainer'>
+	<div class="navbar">
+		<div class="navbar-inner navbarCustom">
+			<!-- Logo of stack search -->
+			<div class='col-md-3 col-sm-3 topBarMargin'>
+				<img src = 'css/img/stacksearch.png'>
+			</div><!--logoholder-->
+			<div class = 'col-md-9 col-sm-9 topBarMargin'>
+				<div class="col-sm-8 col-centered">
+					 <div class="input-group">
+						<input ng-model="queryTerm" id="searchText" type="text" class="form-control searchbox" placeholder="Please enter a movie name" typeahead="suggestion.text for suggestion in movies($viewValue)">
+						<span class="input-group-btn">
+							<button ng-click="search()"  id='searchBtn' class = 'custombtn searchbutton'><i class="fa fa-search"></i></button>
+						</span>
+					</div>
+				</div>
+				<br/>
+				<!--<input  ng-model="queryTerm" id="searchText"  type = 'text' placeholder = 'Please enter a movie name' class = 'form-control searchbox'  typeahead="suggestion.text for suggestion in movies($viewValue)"  />-->
+				<p class='resultNumber ng-cloak' ng-cloak>{{ message.message }}</p>
+			</div> <!--searchbox holder-->
+		</div><!--navbar custom-->
+	</div><!--End of navbar -->
+	<div class='resultWrapper'> 
+		<div class = 'col-md-3 col-sm-3' id='leftDiv'>
+			<h4>FILTER BY</h4>
+			<div class="control-group">
+				<div class="controls">
+					<div class="input-prepend dateContainer">
+						<button type="text"  id="reservation" class = 'btn btn-default ng-cloak' ng-cloak/><i class="fa fa-calendar"></i> <span>&nbsp;{{dateString}}</span></button>
+					</div>
+				</div>
+			</div>
+			<div class="panel-group" id="accordion">
+				<div class="panel panel-default">
+					<div class="panel-heading accHeader">
+						<a data-toggle="collapse" data-parent="#accordion" href="#collapseOne">
+							<h4 class="panel-title">
+							  Price
+							</h4>
+						</a>
+					</div>
+					<div id="collapseOne" class="panel-collapse collapse">
+						<div class="panel-body">
+							<span data-ng-repeat="doc in checkResults.facets.salePrice.ranges">
+								<input id="box_{{doc.from}}"  ng-model="check" ng-change='filter("salePrice", "{{doc.rangeString}}")' class="css-checkbox" type="checkbox" />
+								<label for="box_{{doc.from}}" name="lbl" class="css-label"><div class='col-sm-0 range'><b></b>{{doc.rangeString}} </div>
+								<div class='countRange'>&nbsp;{{doc.count}}</div></label>
+							</span>
+						</div>
+					</div>
+				</div>
+				<div class="panel panel-default">
+					<div class="panel-heading accHeader">
+						<a data-toggle="collapse" data-parent="#accordion" href="#collapseTwo">
+							<h4 class="panel-title">
+								Format
+							</h4>
+						</a>
+					</div>
+					<div id="collapseTwo" class="panel-collapse collapse">
+						<div class="panel-body">
+							<span data-ng-repeat="doc in checkResults.facets.format.terms">
+								<input id="box_{{doc.term}}"  ng-model="check" ng-change='filter("format", "{{doc.term}}")' class="css-checkbox" type="checkbox" />
+								<label for="box_{{doc.term}}" name="lbl" class="css-label"><div class='col-sm-0 range'>{{doc.term}}</div><div class='countRange'>&nbsp;{{doc.count}}</div></label>
+							</span>
+						</div>
+					</div>
+				</div>
+				<div class="panel panel-default">
+					<div class="panel-heading accHeader">
+						<a data-toggle="collapse" data-parent="#accordion" href="#collapseThree">
+							<h4 class="panel-title">
+								Rating
+							</h4>
+						</a>
+					</div>
+					<div id="collapseThree" class="panel-collapse collapse">
+						<div class="panel-body">
+							<span data-ng-repeat="doc in checkResults.facets.rating.terms">
+								<input id="box_{{doc.term}}"  ng-model="check" ng-change='filter("mpaaRating", "{{doc.term}}")' class="css-checkbox" type="checkbox" />
+								<label for="box_{{doc.term}}" name="lbl" class="css-label"><div class='col-sm-0 range'>{{doc.term}}</div><div class='countRange'>&nbsp;{{doc.count}}</div></label>
+							</span>
+						</div>
+					</div>
+				</div>
+				<div class="panel panel-default">
+					<div class="panel-heading accHeader">
+						<a data-toggle="collapse" data-parent="#accordion" href="#collapseFour">
+							<h4 class="panel-title">
+								Studio
+							</h4>
+						</a>
+					</div>
+					<div id="collapseFour" class="panel-collapse collapse">
+						<div class="panel-body">
+							<span data-ng-repeat="doc in checkResults.facets.studio.terms">
+								<input id="box_{{doc.term}}"  ng-model="check" ng-change='filter("studio", "{{doc.term}}")' class="css-checkbox" type="checkbox" />
+								<label for="box_{{doc.term}}" name="lbl" class="css-label"><div class='col-sm-0 range'>{{doc.term}}</div><div class='countRange'>&nbsp;{{doc.count}}</div></label>
+							</span>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div><!--span3-->
+		<div class='col-md-9 col-sm-9' id='rightDiv'>
+			<div class = 'col-md-4 col-sm-12 movieContainer ng-cloak' ng-cloak ng-repeat="doc in results.hits.hits" my-repeat-directive>
+                    <div class='movieTitle'  ng-bind-html-unsafe="doc._source.shortName" > {{ doc._source.shortName }} </div>
+			<div  class = 'movieContainerLeft'>
+				<img src = '{{ doc._source.image }}' />
+				<b>{{ doc._source.releaseDate}}</b><br><br>
+				<b>Plot:</b>{{doc._source.editedPlot}}
+			</div>
+			<div class='movieResultContent'>
+				<p class='moviePrice'><i class="fa fa-usd"></i>&nbsp;{{ doc._source.salePrice}}</p>
+				<a role="button" href="#"  onClick = "passVal('{{ doc._source.indexNumber }}')" class="pull-left btn btn-info viewMore"><i class="fa fa-plus-square"></i>&nbsp;View More</a>
+				<a role="button" href="{{doc._source.addToCartUrl}}" target ='_blank'  class="btn btn-success pull-right buy"><i class="fa fa-shopping-cart"></i>&nbsp;Buy</a>
+			</div>
+		</div>
+		<div class='paginationContainer'>
+			<pagination  max-size="maxSizeFn()" items-per-page="size" total-items="totalItems" page="currentPage" class="pagination-small" previous-text="<" next-text=">"on-select-page="setPage(page)" >
+			</pagination>
+		</div>		
+	</div>
+	</div><!--resultWrapper -->
+	</div><!--end innerContainer -->
+
+	<div class = 'loading'>
+		<img src = 'css/img/ajax-loader.gif'/>
+		<h6>Fetching Movies</h6>
+	</div><!--loading-->
+	<!-- Modal -->
+	<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+	  <div class="modal-dialog viewMoreModal">
+		<div class="modal-content">
+		  <div class="modal-header movieName">
+			<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+			<h4 class="modal-title" id="myModalLabel"></h4>
+		  </div>
+		  <div class="modal-body movieContent">
+			
+		  </div>
+		  <div class="modal-footer movieFooter">
+		   
+		  </div>
+		</div><!-- /.modal-content -->
+	  </div><!-- /.modal-dialog -->
+	</div><!-- /.modal -->
+	<script src='js/bootstrap.js'></script>
+	<script src="js/helper.js"></script>
+	<script src="js/prettyCheckable.js"></script>
+    <script src='js/custom.js'></script>
+	<!-- project specific files -->
+	<script src='js/config.js'></script>
+    <script src="js/app.js"></script>
+    <script src="js/controllers.js"></script>
+</body>
+</html>
