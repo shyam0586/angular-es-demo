@@ -1,4 +1,4 @@
-var hostname = 'http://ec2-54-200-186-105.us-west-2.compute.amazonaws.com:9200';
+var hostname = 'http://af5573352169f922000.qbox.io';
 
 var sortBy = {
     "Time": "releaseDate",
@@ -6,7 +6,7 @@ var sortBy = {
     "Alphabetical": "name",
 };
 
-var index = "products";
+var index = "blurays";
 var type = 'movies';
 
 function getSuggestJSON(name) {
