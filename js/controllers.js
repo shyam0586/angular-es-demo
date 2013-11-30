@@ -35,7 +35,7 @@ angular.module('controllers').controller('SearchCtrl', function ($scope, ejsReso
 
         return $http({
             method: 'POST',
-            url: hostname + '/_suggest',
+            url: hostname + index + '/_suggest',
             data: getSuggestJSON(movieName)
         }).
         then(function (response) {
